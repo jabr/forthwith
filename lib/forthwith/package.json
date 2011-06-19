@@ -1,0 +1,28 @@
+{
+    "name": "forthwith",
+    "version": "0.0.1",
+    "description": "A shared, browser-server workspace inspired by now.js.",
+    "maintainers": [
+        {
+            "name": "Justin Bradford",
+            "email": "jabradford@gmail.com",
+            "web": "https://github.com/jabr"
+        }
+    ],
+    "licenses": [
+        {
+            "type": "MIT"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/jabr/forthwith.git"
+        }
+    ],
+    "dependencies": {},
+    "main": "lib/server.js",
+    "directories": {
+        "lib": "lib"
+    }
+}

@@ -3,15 +3,11 @@
 require.paths.push('./lib');
 
 var {Server} = require('ringo/httpserver');
-var {Socket} = require('./lib/forthwith/server/socket');
+var {Forthwith} = require('forthwith');
 
 var s = new Server({port: 8484});
 s.start();
 
-var sockets = [];
-Socket.bind(s, '/socket', function(socket) {
-  console.log('new socket', socket);
-  sockets.push(socket);
-});
+Forthwith.start(s);
 
 require('ringo/shell').start();
