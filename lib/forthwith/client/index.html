@@ -3,7 +3,35 @@
 <head>
   <title>Forthwith</title>
   <script src="./forthwith.js"></script>
+  <script>
+    setTimeout(function() {
+      forthwith.local.username = 'Anonymous ' + Math.round(Math.random() * 10000);
+      document.getElementById('username').innerHTML = forthwith.local.username;
+      forthwith.local.share('username');
+      forthwith.local.receive = function(user, message) {
+        document.getElementById('messages').innerHTML += '<tr><td>' + user + ':</td><td>' + message + '</td></tr>';
+      };
+      forthwith.local.share('receive');
+    }, 1000);
+    
+    function updateUsername() {
+      forthwith.local.username = prompt('Enter user name') || forthwith.local.username;
+      document.getElementById('username').innerHTML = forthwith.local.username;
+    }
+    
+    
+  </script>
 </head>
 <body>
+  <p>name: <span id="username" onclick="updateUsername();"></span></p>
+  <hr>
+  <form onsubmit="forthwith.remote.publish(this['message'].value); return false;">
+  <input type="text" size="80" name="message">
+  </form>
+  <hr>
+  <p>
+    <table id="messages"></table>
+  </p>
+  
 </body>
 </html>
