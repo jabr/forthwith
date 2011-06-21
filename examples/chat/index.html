@@ -5,27 +5,29 @@
   <script src="/socket/forthwith.js"></script>
   <script>
     function esc(string) {
-      return string.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        return string.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     }
-    setTimeout(function() {
-      forthwith.local.username = 'Anonymous ' + Math.round(Math.random() * 10000);
-      document.getElementById('username').innerHTML = forthwith.local.username;
-      forthwith.local.share('username');
-      forthwith.local.receive = function(user, message) {
-        document.getElementById('messages').innerHTML += '<tr><td>' + esc(user) + ':</td><td>' + esc(message) + '</td></tr>';
-      };
-      forthwith.local.share('receive');
-    }, 1000);
+    
+    forthwith.connected = function() {
+        this.username = 'Anonymous ' + Math.round(Math.random() * 10000);
+        document.getElementById('username').innerHTML = this.username;
+        this.receive = function(user, message) {
+            document.getElementById('messages').innerHTML += 
+                '<tr><td>' + esc(user) + ':</td><td>' + esc(message) + '</td></tr>';
+        };
+    };
+    
+    forthwith.connect();
     
     function updateUsername() {
-      forthwith.local.username = prompt('Enter user name') || forthwith.local.username;
-      document.getElementById('username').innerHTML = esc(forthwith.local.username);
+        forthwith.local.username = prompt('Enter user name') || forthwith.local.username;
+        document.getElementById('username').innerHTML = esc(forthwith.local.username);
     }
     
     function sendMessage(input) {
-      forthwith.remote.publish(input.value);
-      input.value = '';
-      return false;
+        forthwith.remote.publish(input.value);
+        input.value = '';
+        return false;
     }
     
   </script>

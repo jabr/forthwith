@@ -3,63 +3,79 @@ var forthwith = (function() {
     var scriptName = scripts[scripts.length - 1].src;
     var url = scriptName.replace(/^\w+:/, 'ws:').replace(/forthwith.js$/, 'connection');
     
-    var interface = {message: null};
+    var exported = {
+        message: null,
+        connected: null
+    };
     
     var data = {};
-    var local = interface.local = {};
-    var remote = interface.remote = {};
+    var local = exported.local = {};
+    var remote = exported.remote = {};
+    
+    var declare = exported.declare = function(name) {
+        remote[name] = function() {
+            socket.send({
+                c: name,
+                a: Array.prototype.slice.call(arguments)
+            });
+        };
+    }
     
     var socket = {
         connection: null,
         connectAttempts: 0,
         intentionalDisconnect: false,
         
+        update: function(name) {
+            var value = data[name];
+            var message = {s: name, v: value};
+            if (typeof value == 'function') message = {d: name};
+            socket.send(message);
+        },
+        
         opened: function() {
-            console.log('open');
             socket.connectAttempts = 0;
             
             socket.connection.onerror = socket.errored;
             socket.connection.onclose = socket.closed;
             socket.connection.onmessage = socket.messaged;
             
-            Object.keys(data).map(function(name) {
-                var value = data[name];
-                var message = {s: name, v: value};
-                if (typeof value == 'function') message = {d: name};
-                socket.send(message);
-            });
+            Object.keys(data).map(socket.update);
+            
+            if (exported.connected) {
+                exported.connected.apply(local);
+                exported.export();
+            }
         },
         
         messaged: function(message) {
-            var d = JSON.parse(message.data);
-            console.log('message', d);
+            var data = JSON.parse(message.data);
             
-            if (d.s) {
-                remote[d.s] = d.v;
+            if (data.s) {
+                remote[data.s] = data.v;
                 return;
             }
             
-            if (d.d) {
-                remote.declare(d.d);
+            if (data.d) {
+                declare(data.d);
                 return;
             }
             
-            if (d.c) {
-                var f = local[d.c] || function() {};
-                f.apply(local, d.a || []);
+            if (data.c) {
+                var f = local[data.c] || function() {};
+                f.apply(local, data.a || []);
                 return;
             }
             
-            if (interface.message) interface.message(d);
+            if (exported.message) exported.message(data);
         },
         
         closed: function() {
-            console.log('closed');
             if (!socket.intentionalDisconnect) socket.connect();
         },
         
         errored: function() {
-            console.log('error', arguments);
+            console && console.log && console.log('error', arguments);
         },
         
         connected: function() {
@@ -69,14 +85,24 @@ var forthwith = (function() {
             );
         },
         
+        connecting: function() {
+            return (
+                socket.connection &&
+                socket.connection.readyState == WebSocket.CONNECTING
+            );
+        },
+        
         connect: function() {
             socket.intentionalDisconnect = false;
             
             if (!socket.connected()) {
-                socket.connection = new WebSocket(url);
-                socket.connection.onopen = socket.opened;
+                var wait = 100;
+                if (!socket.connecting()) {
+                    socket.connection = new WebSocket(url);
+                    socket.connection.onopen = socket.opened;
                 
-                var wait = Math.min(10000, 100 * Math.pow(2, socket.connectAttempts++));
+                    wait = Math.min(10000, 100 * Math.pow(2, socket.connectAttempts++));
+                }
                 setTimeout(socket.connect, wait);
             }
             
@@ -94,32 +120,29 @@ var forthwith = (function() {
         }
     };
     
-    interface.remote.declare = function(name) {
-        remote[name] = function() {
-            socket.send({
-                c: name,
-                a: Array.prototype.slice.call(arguments)
-            });
-        };
-    };
+    exported.connect = socket.connect;
+    exported.send = socket.send;
     
-    interface.local.share = function(name) {
+    function export(name) {
         var original = local[name];
         Object.defineProperty(local, name, {
             get: function() { return data[name]; },
             set: function(value) {
-                var m = {s: name, v: value};
-                if (typeof value == 'function') {
-                    m = {d: name};
-                }
-                socket.send(m);
-                return data[name] = value;
+                data[name] = value;
+                socket.update(name);
+                return value;
             }
         });
         local[name] = original;
+    }
+    
+    exported.export = function() {
+        var properties = Array.prototype.slice.call(arguments);
+        if (properties.length == 0) properties = Object.keys(local);
+        properties.filter(function(property) {
+            return !(property in data);
+        }).forEach(export);
     };
     
-    socket.connect();
-    
-    return interface;
+    return exported;
 })();
