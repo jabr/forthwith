@@ -1,17 +1,6 @@
 #!/usr/bin/env ringo
 
-// require.paths.push('../../../');
-
-var {Server} = require('ringo/httpserver');
-var {Forthwith} = require('../../'); // normally require('forthwith')
-
-var s = new Server({port: 8484});
-s.start();
-
-Forthwith.start(s);
-
-Forthwith.local.name = 'macmac';
-Forthwith.local.share('name');
+var {Forthwith} = require('../example-helper.js');
 
 Forthwith.local.publish = function(message) {
   console.log(this.username, message);
