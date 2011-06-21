@@ -1,9 +1,9 @@
 #!/usr/bin/env ringo
 
-require.paths.push('./lib');
+// require.paths.push('../../../');
 
 var {Server} = require('ringo/httpserver');
-var {Forthwith} = require('forthwith');
+var {Forthwith} = require('../../'); // normally require('forthwith')
 
 var s = new Server({port: 8484});
 s.start();
