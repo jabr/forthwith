@@ -16,11 +16,11 @@ Forthwith.disconnected = function(client) {
 };
 
 Forthwith.local.joined = function() {
-    send(this.username, '<joined>');
+    send(this.remote.username, '<joined>');
 };
 
 Forthwith.local.publish = function(message) {
-    send(this.username, message);
+    send(this.remote.username, message);
 };
 
 Forthwith.export();
