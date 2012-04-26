@@ -123,7 +123,7 @@ var forthwith = (function() {
     exported.connect = socket.connect;
     exported.send = socket.send;
     
-    function export(name) {
+    function exportName(name) {
         var original = local[name];
         Object.defineProperty(local, name, {
             get: function() { return data[name]; },
@@ -141,7 +141,7 @@ var forthwith = (function() {
         if (properties.length == 0) properties = Object.keys(local);
         properties.filter(function(property) {
             return !(property in data);
-        }).forEach(export);
+        }).forEach(exportName);
     };
     
     return exported;
